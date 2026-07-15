@@ -1,16 +1,20 @@
 # Agents Flow
 
-A separated-role, multi-agent workflow for **omp** (Oh My Pi). Agents Flow takes a
-nontrivial coding/document task and runs it through a disciplined pipeline of
-purpose-built agents — a planner, a reviewer, an executor, and read-only
-specialists — instead of one agent doing everything. The result is safer,
-more auditable changes: one role plans and validates, a different role reviews
-risky transforms, and only one role is ever allowed to edit your real files.
+Agents Flow is a workflow for **omp** (Oh My Pi), an AI coding assistant that
+works in your terminal. Instead of one assistant doing everything, Agents Flow
+puts a small team of specialized assistants on the job — a planner, a reviewer,
+an editor, and a few look-only specialists — each with a clear role and firm
+limits.
 
-- **Skill version:** `3.0.3`
-- **Contract schemas:** workflow `3`, profile `3`, execution-mode `1`
-- **Runtime:** requires the omp coding-agent harness (it is an instruction
-  contract executed by omp's agents, not a standalone program).
+The point is safer, easier-to-check work: one assistant plans the job and
+confirms the result, a different one reviews the risky changes, and only one is
+ever allowed to actually edit your files. The assistant that writes a change is
+never the same one that approved it.
+
+- **Version:** 3.0.3
+- **What you need:** the omp assistant. Agents Flow is a set of instructions plus
+  six assistant descriptions — omp runs them. It is not a separate program you
+  run on its own.
 
 ---
 
@@ -18,102 +22,112 @@ risky transforms, and only one role is ever allowed to edit your real files.
 
 - [What it is](#what-it-is)
 - [How it works](#how-it-works)
-- [Roles](#roles)
+- [Meet the team](#meet-the-team)
 - [Repository contents](#repository-contents)
-- [Requirements](#requirements)
+- [What you need](#what-you-need)
 - [Installation](#installation)
-- [Usage](#usage)
-- [Model configuration and remapping](#model-configuration-and-remapping)
-- [Execution modes](#execution-modes)
-- [Safety model](#safety-model)
-- [Updating and uninstalling](#updating-and-uninstalling)
-- [Troubleshooting](#troubleshooting)
+- [How to use it](#how-to-use-it)
+- [Choosing the AI models](#choosing-the-ai-models)
+- [How changes are made](#how-changes-are-made)
+- [Safety](#safety)
+- [Updating and removing](#updating-and-removing)
+- [If something goes wrong](#if-something-goes-wrong)
 - [License](#license)
 
 ---
 
 ## What it is
 
-Agents Flow is the "separated-role" path for work that is too large or too
-risky for a single foreground agent. It splits a task across dedicated agents
-with strict boundaries:
+Agents Flow is for bigger or riskier jobs that deserve more care than a single
+assistant working alone — a substantial code change, a cleanup that spans many
+files, or a document task where a mistake would be costly.
 
-- The **orchestrator** (your current session) only structures the prompt,
-  launches the run, and relays messages verbatim.
-- **PLAN** owns the run: it inspects the codebase once, asks at most one round
-  of questions, freezes a numbered checklist with an execution mode per item,
-  routes review and implementation, validates the finished project, and writes
-  the final report.
-- **SMOL** is the *only* agent allowed to edit your real project files.
-- **ADVISOR** independently reviews the risky transforms before they touch
-  real files.
-- **DESIGNER**, **VISION**, and the **semantic inspector** are read-only
-  specialists PLAN calls when a task needs UI/UX, visual/PDF, or hard
-  correctness judgment.
+Its simpler sibling, **Quick Flow**, does small jobs by itself in one pass.
+Agents Flow is the opposite trade: it's more thorough, because the work is split
+across a team with strict boundaries:
 
-This division exists so that the agent that *writes* code is never the same
-agent that *approved* it, and so that every change is anchored to an explicit,
-frozen acceptance check.
+- A **coordinator** (your current session) only sets up the job, starts the team,
+  and passes messages back and forth word-for-word. It never edits anything
+  itself.
+- **PLAN** runs the job: it looks through your files once, asks you at most one
+  round of questions, writes a numbered checklist and locks it in, hands work to
+  the reviewer and the editor, checks the finished result, and writes the
+  summary.
+- **SMOL** is the *only* assistant allowed to change your real files.
+- **ADVISOR** independently reviews the risky changes before they ever touch your
+  files.
+- **DESIGNER**, **VISION**, and the **correctness checker** are look-only
+  specialists PLAN calls in when a job needs design, image/PDF checking, or a
+  tricky "is this actually right?" judgment.
+
+Because the roles are separate, every change is tied to a clear, locked-in test
+of success, and no assistant gets to approve its own work.
 
 ## How it works
 
 ```mermaid
 flowchart TD
-    U[User request] --> O[Orchestrator: structure prompt + launch]
-    O -->|spawn agent:plan| P[PLAN: inspect once]
-    P --> S1{Pre-freeze specialists needed?}
-    S1 -->|UI/UX| D[DESIGNER spec]
-    S1 -->|PDF/image| V[VISION]
-    S1 -->|hard judgment| I[Semantic inspector]
+    U[You ask for Agents Flow] --> O[Coordinator: set up the job and start the team]
+    O --> P[PLAN: look through your files once]
+    P --> S1{Need a specialist first?}
+    S1 -->|web page or design| D[DESIGNER draws up the design]
+    S1 -->|PDF or image| V[VISION checks it]
+    S1 -->|tricky correctness call| I[Correctness checker]
     D --> Q
     V --> Q
     I --> Q
-    S1 -->|no| Q[Ask once, only if a real decision remains]
-    Q --> F[Freeze checklist + mode per item]
-    F --> R{Risk-gated review}
-    R -->|scripted / risky batch| A[ADVISOR: code approved?]
-    R -->|low risk| SM
-    A --> SM[SMOL implements the frozen checklist]
-    SM --> PV[PLAN validates the real integrated project]
-    PV --> Rep[PLAN writes final report -> orchestrator displays verbatim]
+    S1 -->|no| Q[Ask you one question, only if truly needed]
+    Q --> F[Lock in a numbered checklist]
+    F --> R{Is any step risky?}
+    R -->|risky| A[ADVISOR reviews and must approve]
+    R -->|routine| SM
+    A --> SM[SMOL makes the changes to your files]
+    SM --> PV[PLAN checks the finished result works]
+    PV --> Rep[PLAN writes the summary; coordinator shows it to you]
 ```
 
-The pipeline in words:
+In plain steps:
 
-```
-orchestrator structures prompt -> launch PLAN -> PLAN inspects
--> required pre-freeze specialists -> ask once only if needed
--> freeze checklist and modes -> risk-gated review -> SMOL implements
--> required post-implementation specialists -> PLAN validates and reports
-```
+1. You ask for Agents Flow; the coordinator sets up the job and starts PLAN.
+2. PLAN looks through your files, brings in any specialist it needs, and asks you
+   one short round of questions only if a real decision is left (often it asks
+   nothing).
+3. PLAN writes a numbered checklist and locks it in.
+4. Anything risky is reviewed and approved by ADVISOR first.
+5. SMOL makes the changes.
+6. PLAN checks that the finished result works and writes a summary, which the
+   coordinator shows you word-for-word.
 
-## Roles
+You mainly step in to answer that one optional round of questions and to read the
+final summary.
 
-Each role is a dedicated omp agent, spawned by exact name. They ship in
+## Meet the team
+
+Each teammate is a separate omp assistant, described by its own file in
 [`agents/`](agents/).
 
-| Role | Agent file | Editing rights | Responsibility |
+| Assistant | File | Can edit your files? | What it does |
 |---|---|---|---|
-| PLAN | `plan.md` | none (real source) | Run captain: inspection, decisions, checklist + mode selection, routing, integrated validation, final report. |
-| ADVISOR | `reviewer.md` | none | Independent review of every scripted transform and every risk-triggered batch edit. Never rubber-stamps. |
-| SMOL | `smol.md` | **real project source** | The only agent that edits your files; implements the finalized checklist mechanically. |
-| DESIGNER | `designer.md` | none | Read-only UI/UX specification before implementation and visual review after. |
-| VISION | `vision.md` | none | Read-only PDF/page/image fidelity inspection against source. |
-| Semantic inspector | `inspector_semantic.md` | none | Read-only judgment on a narrow, high-stakes suspect set structural search cannot settle. |
+| PLAN | `plan.md` | no | The team lead. Looks through your files, makes the plan, decides who does what, checks the final result, and writes the summary. |
+| ADVISOR | `reviewer.md` | no | An independent reviewer. Checks the risky changes before they touch your files, and won't wave through anything it can't verify. |
+| SMOL | `smol.md` | **yes — the only one** | The editor. The single assistant allowed to change your real files, and it does only what the checklist says. |
+| DESIGNER | `designer.md` | no | Look-only design specialist. Plans how a web page or interface should look before it's built, and reviews it afterward. |
+| VISION | `vision.md` | no | Look-only. Compares PDFs, pages, or images against your source to catch anything missing or altered. |
+| Correctness checker | `inspector_semantic.md` | no | Look-only. Weighs in on a few tricky "is this actually right?" calls that a plain text search can't settle. |
 
 ## Repository contents
 
 ```
 agentsflow/
 ├── README.md
-├── install.sh                     # copies everything into your omp config
+├── install.sh          # copies everything into omp
 ├── skills/
-│   └── agentsflow/                # the skill itself
-│       ├── SKILL.md               # entry contract
+│   └── agentsflow/     # the main instructions
+│       ├── SKILL.md
 │       ├── CHANGELOG.md
-│       ├── references/            # authoring, profiles, execution modes, safety, ...
-│       └── assets/                # workflow + launcher templates
-└── agents/                        # the six companion agent definitions
+│       ├── references/ # the detailed rulebooks
+│       └── assets/     # plan templates
+└── agents/             # the six teammate descriptions
     ├── plan.md
     ├── reviewer.md
     ├── smol.md
@@ -122,37 +136,35 @@ agentsflow/
     └── inspector_semantic.md
 ```
 
-Everything the skill references internally lives under `skills/agentsflow/`
-(via `skill://agentsflow/...` URIs). The `agents/` files are required
-companions — the skill spawns them by name, so it cannot run without them.
+The instructions live under `skills/agentsflow/`, and the six teammate
+descriptions live under `agents/`. Both parts are required — the workflow calls
+the teammates by name, so it can't run without them.
 
-## Requirements
+## What you need
 
-1. **The omp (Oh My Pi) coding-agent harness.** Agents Flow is an instruction
-   contract plus agent definitions; omp's `task`/subagent system executes it.
-   It does not run outside omp.
-2. **Sub-agent spawning enabled** with recursion depth ≥ 2 (default). The
-   topology is orchestrator → PLAN → specialists, i.e. two spawn levels.
-3. **Model access.** Each agent pins a model in its frontmatter. The defaults
-   shipped here are:
+1. **The omp (Oh My Pi) assistant.** Agents Flow runs inside omp; it doesn't work
+   on its own.
+2. **omp allowed to start helper assistants, two levels deep.** The coordinator
+   starts PLAN, and PLAN starts the specialists — that's two levels. This is the
+   normal default setting.
+3. **Access to some AI models.** Each teammate is set to use a particular AI
+   model (below). If you don't have these exact ones, that's fine — just tell omp
+   which models to use instead (see [Choosing the AI models](#choosing-the-ai-models)).
+   Nothing depends on a specific company's model; PLAN just needs a strong
+   thinker, ADVISOR a strong independent reviewer, and SMOL a capable coder.
 
-   | Agent | Default model | Thinking |
+   | Teammate | Model it's set to use | Thinking effort |
    |---|---|---|
    | `plan` | `openai-codex/gpt-5.5` | high |
    | `reviewer` | `anthropic/claude-opus-4-8` | high |
    | `smol` | `deepseek/deepseek-v4-pro` | off |
    | `designer` | `google-antigravity/gemini-3.1-pro` | high |
-   | `vision` | `google-antigravity/gemini-3.1-pro` | — |
+   | `vision` | `google-antigravity/gemini-3.1-pro` | default |
    | `inspector_semantic` | `google-antigravity/gemini-3.1-pro` | high |
-
-   If you do not have these exact providers, the flow still works — just
-   **remap the models** (see below). Nothing about the workflow logic depends
-   on a specific vendor; PLAN wants a strong reasoner, ADVISOR wants an
-   independent strong reviewer, SMOL wants a capable executor.
 
 ## Installation
 
-### Quick install
+### The easy way
 
 ```sh
 git clone https://github.com/xzhang17/agentsflow.git
@@ -162,12 +174,16 @@ cd agentsflow
 
 `install.sh` copies:
 
-- `skills/agentsflow/` → `~/.agents/skills/agentsflow/`
-- `agents/*.md` → `~/.omp/agent/agents/`
+- the instructions → `~/.agents/skills/agentsflow/`
+- the six teammate files → `~/.omp/agent/agents/`
 
-Then start a new omp session so discovery picks them up.
+Then start a new omp session so it notices them.
 
-Custom locations are supported via environment variables:
+New to these commands? `git clone` downloads the files, `cd` moves into the
+downloaded folder, and `./install.sh` runs the copy step. You'll need
+[Git](https://git-scm.com) installed.
+
+You can send the files elsewhere with environment variables:
 
 ```sh
 AGENTSFLOW_SKILLS_DIR="$HOME/.agents/skills" \
@@ -175,46 +191,46 @@ PI_CODING_AGENT_DIR="$HOME/.omp/agent" \
 ./install.sh
 ```
 
-### Manual install
+### By hand
 
-If you prefer to copy by hand (or install per-project):
+If you'd rather copy the files yourself (or set it up for just one project):
 
 ```sh
-# user-level (global)
+# make it available everywhere
 cp -R skills/agentsflow ~/.agents/skills/agentsflow
 cp agents/*.md ~/.omp/agent/agents/
 
-# OR project-level (only inside one repo)
+# or only inside one project folder
 mkdir -p .agents/skills .omp/agents
 cp -R skills/agentsflow .agents/skills/agentsflow
 cp agents/*.md .omp/agents/
 ```
 
-omp discovers user skills in `~/.agents/skills/` and user agents in
-`~/.omp/agent/agents/`; the project-level equivalents are `<repo>/.agents/skills/`
-and `<repo>/.omp/agents/`.
+omp looks for your instructions in `~/.agents/skills/` and your teammate files in
+`~/.omp/agent/agents/`; the per-project spots are that project's own
+`.agents/skills/` and `.omp/agents/` folders.
 
-### Verify
+### Check it worked
 
-Start omp and run:
+Start omp and type:
 
 ```
 /skill:agentsflow
 ```
 
-If the skill body loads, discovery succeeded. To confirm the agents are
-visible, ask omp to list available task agents — `plan`, `reviewer`, `smol`,
-`designer`, `vision`, and `inspector_semantic` should appear.
+If the instructions load, it's installed. To confirm the teammates are there,
+ask omp to list its available assistants — `plan`, `reviewer`, `smol`,
+`designer`, `vision`, and `inspector_semantic` should all show up.
 
-## Usage
+## How to use it
 
-Agents Flow activates **only when you explicitly ask for it** — it never
-hijacks ordinary requests. Trigger it by naming it:
+Agents Flow only starts when you ask for it by name — it won't take over your
+normal requests. Just mention it:
 
 ```
-Use agentsflow to refactor the auth module: split session handling out of
-handlers.py into a new session.py, update all callers, keep the public API
-stable, and make the existing tests pass.
+Use agentsflow to reorganize the auth module: move session handling out of
+handlers.py into a new session.py, update everything that calls it, keep the
+public interface the same, and make the existing tests pass.
 ```
 
 or
@@ -224,35 +240,38 @@ Run an Agents Flow workflow to fix the citation numbering across all chapters
 of paper/, without changing any equation or figure labels.
 ```
 
-What happens next:
+What happens:
 
-1. The orchestrator structures your request and launches PLAN.
-2. PLAN inspects, then either proceeds or sends **one** short questionnaire if
-   a genuine decision remains (zero questions is the norm).
-3. PLAN freezes a numbered checklist, routes review + SMOL, validates, and
-   returns a final report that the orchestrator shows you verbatim.
+1. The coordinator sets up your request and starts PLAN.
+2. PLAN looks through your files, then either just proceeds or asks **one** short
+   round of questions if a real decision is left (asking nothing is the norm).
+3. PLAN locks in a numbered checklist, sends work to the reviewer and SMOL,
+   checks the result, and gives you a summary shown word-for-word.
 
-You interact mainly at step 2 (answer once) and step 3 (read the report).
+You mainly interact at step 2 (answer once) and step 3 (read the summary).
 
-### Durable vs direct runs
+### Two ways it can run
 
-- **Durable (default):** the orchestrator writes a workflow record and launcher
-  under `.agentsflow/` in your project, then launches PLAN with it. Good for
-  auditability and reruns.
-- **Direct:** if you say "don't generate workflow files" (or ask for immediate
-  local work), the same contract is passed inline to PLAN with no files written.
+- **Saved (the default):** before starting, the coordinator writes the plan into
+  a `.agentsflow/` folder in your project. Good if you want a record to look back
+  at or rerun.
+- **On the spot:** if you say "don't create any files," it keeps the plan in
+  memory and just runs, writing nothing extra.
 
-## Model configuration and remapping
+## Choosing the AI models
 
-You have three ways to point the roles at models you actually have. Pick one.
+The teammates come set to use specific AI models. If you have those, you're done.
+If not — or if you'd rather use your own — here are three ways to change them.
+Pick one.
 
-**A. Per-agent override in omp config (recommended, non-destructive):**
+**A. Tell omp to swap them (recommended, leaves the files untouched).** Add this
+to your omp settings file:
 
 ```yaml
 # ~/.omp/agent/config.yml
 task:
   agentModelOverrides:
-    plan: your-provider/strong-reasoner:high
+    plan: your-provider/strong-thinker:high
     reviewer: your-provider/independent-reviewer:high
     smol: your-provider/capable-coder
     designer: your-provider/vision-model:high
@@ -260,12 +279,11 @@ task:
     inspector_semantic: your-provider/vision-model:high
 ```
 
-**B. Edit the frontmatter** of the files in `agents/` before running
-`install.sh` (change the `model:` line in each).
+**B. Edit the teammate files directly.** Open each file in `agents/` and change
+its `model:` line before running `install.sh`.
 
-**C. Add fallback chains** so a provider outage doesn't stall a run. Because
-subagents pin a single model, give them explicit fallbacks keyed by model or
-provider:
+**C. Add backups for each model** so a temporary outage at one AI provider
+doesn't stall a run. Each teammate uses one model, so give it a fallback:
 
 ```yaml
 # ~/.omp/agent/config.yml
@@ -278,79 +296,81 @@ retry:
       - openai-codex/gpt-5.5:high
     deepseek/deepseek-v4-pro:        # SMOL
       - your-provider/backup-coder
-    google-antigravity/*:            # DESIGNER / VISION / inspector
+    google-antigravity/*:            # DESIGNER / VISION / correctness checker
       - google/*
       - google-vertex/*
 ```
 
-> Note: the model an Agents Flow agent runs comes from its **agent definition**
-> (frontmatter) or `task.agentModelOverrides` — *not* from `modelRoles` in
-> `config.yml`. `modelRoles` drives your main session, not these subagents.
+> Good to know: the model a teammate uses comes from its own file (or the
+> `agentModelOverrides` setting above) — *not* from the `modelRoles` setting in
+> `config.yml`. `modelRoles` controls your main session, not these teammates.
 
-## Execution modes
+## How changes are made
 
-PLAN assigns exactly one mode to every checklist item. This is what keeps edits
-mechanical and reviewable:
+PLAN sorts every checklist step into one of four kinds, so each change is made in
+the safest way that fits. This is what keeps edits precise and easy to review:
 
-| Mode | What it means | Review |
+| Kind | What it means | Extra review? |
 |---|---|---|
-| `anchored` | SMOL edits one exact site from an exact anchor. | none required |
-| `batch-anchored` | SMOL applies an exact `(file, line, old, new)` tuple list with an exact-once-or-refuse applier. | ADVISOR only if the risk trigger fires |
-| `scripted-pattern` | A regex/AST transform PLAN authored and dry-ran on a `/tmp` copy. | **mandatory** ADVISOR `code approved` |
-| `planned-implementation` | SMOL implements a file-by-file behavior contract with normal engineering judgment inside named boundaries. | as specified |
+| One exact spot | SMOL changes a single, pinpointed place in one file. | none |
+| Many exact spots at once | SMOL applies a pre-listed set of exact edits; each must match exactly or the whole batch is refused (no half-done edits). | reviewer, only if it's risky |
+| A find-and-replace script | For the same change repeated across many files, PLAN writes a small script and tests it on a throwaway copy first. | **always** — the reviewer must approve the script first |
+| Build to a spec | For work needing real judgment, PLAN gives SMOL a detailed description of what each file should do, and SMOL builds it within those limits. | as needed |
 
-No scripted transform ever reaches your real files without an independent
-ADVISOR approval. Full details live in
+No script ever runs on your real files until the reviewer has approved it. The
+full details are in
 [`skills/agentsflow/references/execution-modes.md`](skills/agentsflow/references/execution-modes.md).
 
-## Safety model
+## Safety
 
-Agents Flow is built around hard boundaries (see
+Agents Flow is built around firm rules (details in
 [`references/safety.md`](skills/agentsflow/references/safety.md)):
 
-- Only **SMOL** edits real project source. PLAN validates but never edits.
-- The orchestrator, after launch, only relays — it never edits, reviews, or
-  reinterprets results.
-- **No destructive git** (`git reset --hard`, `git checkout -- <file>`,
-  `git clean -fd`, `git stash drop`) without your explicit approval in the
-  conversation. The workflow never discards your changes to fix its own work.
-- **No backups are created automatically.** Agents Flow assumes you manage your
-  own restore points (commit or stash before a large run if you want one).
-- Secrets are never printed; irreversible/external actions require explicit
-  authorization with a stated recovery boundary.
+- Only **SMOL** changes your files. PLAN checks the result but never edits.
+- After starting the team, the coordinator only passes messages along — it never
+  edits, reviews, or adds its own explanation.
+- It will not run commands that could throw away your work (certain Git "undo"
+  commands) without asking you first, and it never discards your changes to cover
+  up its own mistake.
+- It does not make backups for you. If you want a safety net before a big run,
+  save your own restore point first (for example, commit or stash in Git).
+- It never prints passwords or secret keys, and anything permanent or that
+  reaches the outside world needs your clear go-ahead.
 
-## Updating and uninstalling
+## Updating and removing
 
-**Update:** pull the latest and re-run the installer (it replaces the skill copy
-and refreshes the agent files):
+**Update** (re-download and re-run the installer, which refreshes both the
+instructions and the teammate files):
 
 ```sh
 git pull
 ./install.sh
 ```
 
-**Uninstall:**
+**Remove:**
 
 ```sh
 rm -rf ~/.agents/skills/agentsflow
 rm -f ~/.omp/agent/agents/{plan,reviewer,smol,designer,vision,inspector_semantic}.md
 ```
 
-(Only remove the agent files if no other workflow of yours uses them.)
+(Only remove the teammate files if nothing else of yours uses them.)
 
-## Troubleshooting
+## If something goes wrong
 
-- **`/skill:agentsflow` not found** — the skill isn't in a discovered directory,
-  or `skills.enabled` is off. Confirm it sits at
-  `~/.agents/skills/agentsflow/SKILL.md` and start a fresh session.
-- **"Unknown agent 'plan'"** — the agent files aren't in
-  `~/.omp/agent/agents/`. Re-run `install.sh`.
-- **A role fails to start / model unavailable** — you don't have that provider.
-  Remap the model (see [above](#model-configuration-and-remapping)).
-- **PLAN can't spawn specialists** — recursion depth is too low. Ensure
-  `task.maxRecursionDepth` is at least `2`.
-- **SMOL's edits don't appear** — task isolation is sandboxing the write. Set
-  `task.isolation.mode: none` so SMOL edits the real working tree.
+- **`/skill:agentsflow` isn't found** — the files aren't where omp looks, or
+  skills are turned off. Make sure the instructions sit at
+  `~/.agents/skills/agentsflow/SKILL.md`, then start a new session.
+- **"Unknown agent 'plan'"** — the teammate files aren't in
+  `~/.omp/agent/agents/`. Run `install.sh` again.
+- **A teammate won't start, or a model isn't available** — you don't have that AI
+  provider. Point it at one you do have (see
+  [Choosing the AI models](#choosing-the-ai-models)).
+- **PLAN can't start its specialists** — omp isn't allowed to go two levels deep.
+  Make sure the `task.maxRecursionDepth` setting is at least `2`.
+- **SMOL's changes don't show up in your files** — omp is editing a private copy
+  instead of your real files. Set `task.isolation.mode: none` in your settings so
+  it edits your actual project.
 
 ## License
 
