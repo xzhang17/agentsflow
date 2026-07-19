@@ -55,28 +55,31 @@ Validation proves changed behavior; it does not maximize command count.
 - A committed check that cannot run is failed or blocked, not silently skipped.
 - Copy-only dry-run evidence never replaces validation of the integrated real project.
 
-For LaTeX, one project-native compile to the required convergence state, directly affected pages or a small representative sample, and one task-relevant diagnostic check are normally sufficient. Full-page or pixel comparison requires an explicit exhaustive-fidelity goal or evidence that focused validation cannot prove the result.
+For LaTeX, one project-native compile to the required convergence state, directly affected pages or a small representative sample, and one task-relevant diagnostic check are normally sufficient. When PDF/image fidelity is committed, PLAN fixes the exact evidence set and VISION renders and inspects only those pages through its restricted temporary-image tools. Full-page or pixel comparison requires an explicit exhaustive-fidelity goal or evidence that focused validation cannot prove the result.
 
 ## Editing and Validation Separation
 
 - PLAN inspects, plans, routes, validates, performs authorized housekeeping, and reports. PLAN never edits real project source files.
 - SMOL implements only the finalized checklist. It does not broaden validation unless PLAN assigned an implementation-local smoke check.
 - The orchestrator does not inspect, edit, validate, or supplement after PLAN launches.
-- ADVISOR, DESIGNER, VISION, and the semantic inspector are read-only.
+- ADVISOR, DESIGNER, VISION, and the semantic inspector are read-only with respect to user and project files. VISION alone may use its restricted renderer to create private session-temporary PNGs from PLAN-assigned local PDF pages; it has no general command, write, edit, or browser capability.
 
 ## Decision and Blocked Outcomes
 
 Use `PLAN DECISION REQUEST [D1]` only for one bounded choice when no questionnaire was sent and continuation depends on the answer. This consumes the run's single user-decision reply.
 
+This section is the single authority for blocked-run triggers. `references/grilling-intake.md` owns the notice protocol and refers here rather than duplicating this list.
+
 Use `PLAN BLOCKED [B1]` when continuation is genuinely impossible, including:
 
-- incompatible workflow/schema contract;
+- incompatible or malformed frozen workflow/schema contract;
 - missing required profile or mode authority;
 - irreversible/external action without exact authorization;
 - suspected corruption;
 - mandatory scripted review ending without `code approved`;
-- a validation regression that cannot be resolved within the finalized scope;
-- an ambiguity with no safe conservative default after the user-decision opportunity is exhausted.
+- a validation failure or regression that cannot be resolved within the finalized authorized scope;
+- required evidence or tooling is unavailable and no honest substitute proves the acceptance criterion, including an uncorrectable required `VISION_FAIL`;
+- a material ambiguity has no safe conservative default after the user-decision opportunity is exhausted.
 
 A blocked notice ends the run. It states the blocker, evidence, whether user files changed, recovery boundary, and narrow next options. It is not a request for routine approval.
 

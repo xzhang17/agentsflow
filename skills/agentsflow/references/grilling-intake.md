@@ -57,15 +57,7 @@ Ask once, wait for one reply, update the checklist or validation contract as aut
 
 ## Blocked Notice
 
-Use `PLAN BLOCKED [B1]` only when continuation is genuinely impossible, including:
-
-- incompatible or malformed frozen workflow/schema contract;
-- a required irreversible or external action lacks exact authorization;
-- suspected corruption;
-- mandatory scripted review ends without `code approved`;
-- validation fails outside the authorized repair scope;
-- a material ambiguity has no safe default and the one-reply opportunity is exhausted;
-- required evidence or tooling is unavailable and no honest substitute proves the acceptance criterion.
+Use `PLAN BLOCKED [B1]` only when continuation is genuinely impossible. The single authority for blocked-run triggers is **Decision and Blocked Outcomes** in `references/safety.md`; load that section before issuing the notice. This file owns the decision and notice protocol and does not restate or extend the trigger list.
 
 Use the canonical `PLAN BLOCKED [B1]` shape in `references/templates.md`.
 

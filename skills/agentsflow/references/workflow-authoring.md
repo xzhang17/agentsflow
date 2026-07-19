@@ -43,7 +43,7 @@ If that pair exists, append `_2`, `_3`, and so on. Never overwrite or mutate an 
 
 Every new workflow declares exactly:
 
-- `Agents Flow skill: 3.0.3`
+- `Agents Flow skill: 3.0.5`
 - `Workflow schema: 3`
 - `Profile schema: 3`
 - `Execution-mode schema: 1`

@@ -199,6 +199,24 @@ SMOL implementation report:
 
 PLAN alone validates the integrated real project and authors the final report.
 
+## VISION Evidence Contract
+
+For required PDF/page/image fidelity, PLAN supplies this complete assignment:
+
+```text
+VISION evidence contract:
+- inputs: <unique input ID -> exact local PDF/image path>
+- comparisons/sites: <comparison ID -> reference input/page and target input/page | standalone site ID -> input/page>
+- pages: <exact page list for each input>
+- default full-page DPI: <72-300; normally 180>
+- comparison criteria: <bounded visible properties>
+- coverage: <representative | exhaustive>
+- follow-up crops: <VISION may choose bounded normalized coordinates within assigned pages and criteria | not allowed>
+- boundary: render only assigned local PDF pages with `render_pdf_pages`; inspect returned or supplied images with `read`; use `render_pdf_region` only when follow-up crops are allowed and a full page is insufficient; do not add inputs, pages, pairs, sites, or criteria; do not substitute text extraction
+```
+
+VISION returns one image-based result keyed by comparison or standalone-site ID for every assigned pair or site. It records any chosen crop coordinates. On `VISION_FAIL`, include the exact renderer/model error. PLAN may retry only when that exact error is directly correctable without changing scope; otherwise the unavailable required evidence blocks the criterion and run. A discrepancy found in successfully inspected images is a validation failure, not `VISION_FAIL`. PLAN never replaces a required VISION review with its own image inspection or an inferred failure story.
+
 ## Final Report
 
 Successful runs use a concise Markdown table beginning exactly with:

@@ -1,10 +1,10 @@
 ---
 name: agentsflow
-version: 3.0.3
+version: 3.0.5
 description: Generate and run safe Agents Flow workflows. The orchestrator structures a prompt and launches PLAN; PLAN inspects once, obtains required pre-freeze specialist input, resolves at most one user-decision packet, freezes a mode-per-item checklist, routes review and SMOL, obtains required post-implementation specialist review, validates the integrated project, performs authorized housekeeping, and authors the final report.
 ---
 
-<!-- Version: 3.0.3 - full history: see CHANGELOG.md in this skill directory. -->
+<!-- Version: 3.0.5 - full history: see CHANGELOG.md in this skill directory. -->
 
 # Skill: Agents Flow
 
@@ -53,7 +53,7 @@ The runtime topology after PLAN starts is identical in both branches.
 
 ## Current Contract Versions
 
-- **Agents Flow skill:** `3.0.3`
+- **Agents Flow skill:** `3.0.5`
 - **Workflow schema:** `3`
 - **Profile schema:** `3`
 - **Execution-mode schema:** `1`
@@ -69,7 +69,7 @@ New workflows use `references/profiles.md` and `references/execution-modes.md`. 
 | ADVISOR | `reviewer` | Independent review for every scripted item and risk-triggered batch item. Never edits. |
 | SMOL | `smol` | Only real-project source editor; implements the finalized checklist. |
 | DESIGNER | `designer` | Read-only web/UI specification before implementation and visual review afterward. |
-| VISION | `vision` | Read-only PDF/page/image fidelity inspection. |
+| VISION | `vision` | Read-only PDF/page/image fidelity inspection. It may render only PLAN-assigned local PDF pages into private session-temporary PNGs with restricted tools; it never edits project files. |
 | Semantic inspector | `inspector_semantic` | Narrow read-only judgment escalation when structural inspection cannot settle correctness. |
 
 Named roles must be spawned by exact agent name. Never substitute a general-purpose agent when a dedicated role exists.
@@ -183,7 +183,7 @@ Every scripted item requires PLAN's whole-copy dry-run and independent ADVISOR r
 ## Specialist Routing
 
 - Every web/UI task uses DESIGNER before checklist freeze and after SMOL. PLAN also exercises the real interface in its browser.
-- When `evidence-visual-browser-pdf` requires supplied or rendered PDF/page/image fidelity inspection, PLAN must use VISION with the exact evidence set; otherwise VISION remains optional.
+- When `evidence-visual-browser-pdf` requires supplied or rendered PDF/page/image fidelity inspection, PLAN must choose uniquely identified local reference/target inputs, explicit comparison pairs or standalone sites, the exact page list, bounded criteria, suitable default DPI, and whether follow-up crops are allowed, then pass that complete evidence contract to VISION. VISION renders and visually inspects its own temporary page images with `render_pdf_pages`. When the contract allows it and a full page is insufficient, VISION may choose bounded normalized crop coordinates within an assigned page and use `render_pdf_region`; it must ask PLAN for any new page or evidence set. PLAN does not render or inspect the images itself, and VISION must not expand the assigned inputs, pages, pairs, or criteria; otherwise VISION remains optional.
 - The semantic inspector receives only a narrow suspect set whose correctness cannot be decided structurally.
 - ADVISOR is not a routine plan critic or final-diff reviewer.
 - SMOL receives only finalized checklist items and required review records.
@@ -195,11 +195,13 @@ PLAN validates the integrated real project after SMOL. Validation is proportiona
 - run the narrowest project-native check that proves each acceptance criterion;
 - reproduce a reported defect when practical, then confirm it is gone;
 - exercise actual UI behavior in the browser for UI work;
-- compile/render task-relevant LaTeX and inspect affected pages and diagnostics;
+- compile/render task-relevant LaTeX and inspect diagnostics; when PDF/image fidelity is a committed criterion, require VISION's image-based report for every assigned page rather than substituting PLAN inspection or text extraction;
 - add tests only for a new observable contract without existing coverage or when the prompt requests them;
 - avoid broad formatters, full suites, exhaustive visual comparisons, and unrelated warning sweeps unless the changed surface or prompt requires them.
 
 Equivalent obligations collapse into one check. A committed check that cannot run is failed or blocked, never silently dropped. Copy-only dry-run evidence supplements but never replaces final real-project validation.
+
+If a required VISION review returns `VISION_FAIL`, PLAN may correct and retry only when the exact reported tool/model error is directly correctable without changing scope. Otherwise the unavailable required evidence blocks the criterion and the run. A visual discrepancy reported from successfully inspected image evidence is a validation failure, not `VISION_FAIL`. PLAN records exact errors verbatim and never invents a cause such as credits, provider unavailability, or missing image capability.
 
 ## LaTeX Post-Success Cleanup
 

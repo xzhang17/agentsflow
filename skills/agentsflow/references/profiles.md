@@ -296,13 +296,13 @@ The target includes LaTeX sources, bibliographies, figures, classes, or document
 <!-- AGENTS_PROFILE_AUTHORING_END: artifact-document-latex -->
 
 ### Runtime rubric — PLAN
-- Inspect root and included inputs, build configuration, and task-relevant rendered pages.
+- Inspect root and included inputs plus build configuration, and identify task-relevant rendered pages. When `evidence-visual-browser-pdf` requires PDF fidelity, assign those pages to VISION under its exact evidence contract rather than inspecting them in PLAN.
 - Preserve mathematical meaning, labels, cross-references, citations, filenames, and order.
 - Treat OCR corruption narrowly and do not trust compilation alone.
 - Use the project-native LaTeX pipeline.
 
 ### Validation obligations
-- Compile once to convergence as the project requires, inspect directly affected pages or a small representative sample, and check task-relevant undefined-reference, warning, and overfull diagnostics.
+- Compile once to convergence as the project requires and check task-relevant undefined-reference, warning, and overfull diagnostics. When the requested result is visual, require the role designated by the selected evidence profile to inspect directly affected pages or a small representative sample.
 
 ### Cross-profile interfaces
 - Eligible mutating work follows `references/latex-cleanup.md` only after all validation passes.
@@ -372,13 +372,13 @@ Correctness requires screenshots, browser states, rendered PDF pages, images, or
 <!-- AGENTS_PROFILE_AUTHORING_END: evidence-visual-browser-pdf -->
 
 ### Runtime rubric — PLAN
-- Inspect visual evidence directly; do not infer rendered correctness from source.
+- Establish visual correctness from image/page evidence; do not infer rendered correctness from source.
 - For web/UI, use PLAN's browser plus DESIGNER pre/post review.
-- For supplied or rendered PDF/image fidelity, route the exact evidence set to VISION.
-- Use exhaustive comparison only when explicitly required or focused evidence cannot prove the result.
+- For supplied or rendered PDF/image fidelity, PLAN chooses uniquely identified local reference/target inputs, explicit comparison pairs or standalone sites, the exact pages, bounded criteria, suitable default DPI, and whether follow-up crops are allowed, then routes that complete contract to VISION. VISION uses its restricted renderer for private temporary PNGs and returns image-based findings keyed to those identifiers; PLAN does not render or visually inspect those pages itself.
+- When the contract allows follow-up crops and a full page is insufficient, VISION may choose bounded normalized crop coordinates within an assigned page and criterion. It must ask PLAN for any new page or evidence set and may not expand the assigned inputs, pages, pairs, or criteria autonomously. Use exhaustive comparison only when explicitly required or focused evidence cannot prove the result.
 
 ### Validation obligations
-- Report the inspected pages, states, or viewports and every material discrepancy or evidence limitation.
+- Report every inspected input or comparison identifier, page or site, material discrepancy, and evidence limitation. Required PDF/image fidelity passes only when VISION inspected image evidence for every assigned pair or standalone site. An uncorrectable `VISION_FAIL` blocks the criterion and run rather than being treated as a visual discrepancy or replaced by PLAN inspection or text extraction.
 
 ## `evidence-source-reference`
 

@@ -11,7 +11,7 @@ confirms the result, a different one reviews the risky changes, and only one is
 ever allowed to actually edit your files. The assistant that writes a change is
 never the same one that approved it.
 
-- **Version:** 3.0.3
+- **Version:** 3.0.5
 - **What you need:** the omp assistant. Agents Flow is a set of instructions plus
   six assistant descriptions — omp runs them. It is not a separate program you
   run on its own.
