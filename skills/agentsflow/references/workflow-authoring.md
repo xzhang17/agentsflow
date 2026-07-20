@@ -37,18 +37,15 @@ If either default exists and overwrite was not explicitly requested, choose a ma
 .agentsflow/AGENTS_LAUNCHER_<short-task-slug>.md
 ```
 
-If that pair exists, append `_2`, `_3`, and so on. Never overwrite or mutate an earlier frozen snapshot automatically.
+If that pair exists, append `_2`, `_3`, and so on. Never overwrite a generated workflow the user may still be running.
 
 ## Current Metadata
 
 Every new workflow declares exactly:
 
-- `Agents Flow skill: 3.0.5`
-- `Workflow schema: 3`
-- `Profile schema: 3`
-- `Execution-mode schema: 1`
+- `Agents Flow skill: 3.1.0`
 
-Version stamps identify installation consistency. Schema numbers identify file contracts and change only when those formats change.
+This single stamp records which skill version authored the workflow, for provenance only.
 
 ## Profile Selection
 
@@ -67,7 +64,7 @@ Version stamps identify installation consistency. Schema numbers identify file c
 Render the core template in memory with concise prompt-grounded content:
 
 - task title;
-- current version and schema stamps;
+- current skill version stamp;
 - goal and context;
 - named inputs and read-only/editable boundaries;
 - selected profile IDs;
@@ -93,14 +90,14 @@ Before writing, mechanically verify the in-memory render:
 
 Then render the launcher with the exact final workflow path and mechanically verify that no slots remain and the path occurs exactly once.
 
-Write both new files. Their first substantive read by PLAN is the handoff; do not perform a redundant post-write equality comparison. If either write fails, do not launch PLAN. Correct only an incomplete, not-yet-launched pair; never rewrite a frozen pair.
+Write both new files. Their first substantive read by PLAN is the handoff; do not perform a redundant post-write equality comparison. If either write fails, do not launch PLAN. Correct only an incomplete, not-yet-launched pair; never overwrite a previously generated pair the user may be running.
 
 ## Launch Gate
 
 Before launching PLAN, verify from the retained rendered content and write results:
 
 - both selected paths were written successfully;
-- workflow metadata matches the current contract;
+- the workflow stamps the current skill version;
 - the launcher contains the exact final workflow path exactly once;
 - neither retained render contains an unresolved slot;
 - selected profiles remain valid.
@@ -109,16 +106,11 @@ If the gate fails, report the write/check failure and do not launch.
 
 ## Local Runtime Branch
 
-When the user explicitly requests immediate local Agents Flow execution without workflow files, structure the same binding fields in the PLAN spawn prompt and include the same version/schema contract. Do not create a launcher or durable workflow pair. PLAN still owns inspection, questionnaire, checklist/modes, routing, validation, housekeeping, and reporting.
+When the user explicitly requests immediate local Agents Flow execution without workflow files, structure the same binding fields in the PLAN spawn prompt and include the current skill version. Do not create a launcher or durable workflow pair. PLAN still owns inspection, questionnaire, checklist/modes, routing, validation, housekeeping, and reporting.
 
-## Immutability and Compatibility
+## Generated Pairs
 
-Generated workflows and launchers are versioned snapshots. Never rewrite them merely because the installed skill changed.
-
-- A new run under the current contract uses `profiles.md` and `execution-modes.md`.
-- A frozen workflow that names legacy `modes.md` remains readable only as a compatibility snapshot.
-- Do not silently reinterpret an incompatible major schema. Report that the workflow must be regenerated.
-- PLAN's first read of the saved workflow is sufficient handoff verification; no separate read-back ceremony is required.
+Each run authors a fresh workflow and launcher from the current `profiles.md` and `execution-modes.md`. PLAN's first read of the saved workflow is sufficient handoff verification; no separate read-back ceremony is required. Do not overwrite a previously generated pair the user may still be running; choose a collision-free name instead.
 
 ## Launch and Relay
 

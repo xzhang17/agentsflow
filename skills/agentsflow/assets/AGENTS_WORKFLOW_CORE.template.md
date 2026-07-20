@@ -1,6 +1,6 @@
 # Agents Flow: @@AGENTS_SLOT:TASK_TITLE@@
 
-<!-- Agents Flow skill: @@AGENTS_SLOT:SKILL_VERSION@@; Workflow schema: @@AGENTS_SLOT:SCHEMA_VERSION@@; Profile schema: @@AGENTS_SLOT:PROFILE_SCHEMA_VERSION@@; Execution-mode schema: @@AGENTS_SLOT:EXECUTION_MODE_SCHEMA_VERSION@@ -->
+<!-- Agents Flow skill: @@AGENTS_SLOT:SKILL_VERSION@@ -->
 
 ## Goal
 

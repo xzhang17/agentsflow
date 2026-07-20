@@ -2,12 +2,6 @@
 
 This file is the single detailed authority for how PLAN classifies checklist items, prepares implementation artifacts, invokes review, and hands work to SMOL. Profiles define task obligations; modes define implementation mechanics. A selected profile never preselects a mode.
 
-## Schema
-
-- **Execution-mode schema:** `1`
-- A workflow may require this exact schema or a compatible major version.
-- Old frozen workflows that name `references/modes.md` remain versioned snapshots. Regenerate a workflow to use this file; do not edit an old snapshot in place.
-
 ## Mode Selection
 
 PLAN assigns exactly one mode to every finalized checklist item after inspection:
@@ -59,6 +53,8 @@ Use only when every change is an exact tuple:
 
 If exact source text cannot be recovered, use `anchored`. Judgment-dependent sites never belong in a batch.
 
+Tuples bind to the source state PLAN captured them from. When another checklist item edits a tuple's file, PLAN sequences the batch item ahead of it or re-captures the tuples — refreshing `/tmp` evidence and any required review — before SMOL runs the applier. An applier refusal on a stale line returns the item to PLAN.
+
 ### Exact-once-or-refuse applier
 
 The applier must validate the entire tuple set before writing. It applies a tuple only when the exact `old` substring occurs exactly once on the named line. Any mismatch, duplicate key, out-of-scope path, or non-unique occurrence refuses the whole write with no partial edits. A blind replacement is prohibited.
@@ -102,7 +98,7 @@ ADVISOR checks only the tuple and applier mechanics:
 - obvious idempotency;
 - preservation of required prefixes, spacing, and delimiters.
 
-Verdict: `structurally approved` or `revisions requested`. PLAN revises and refreshes `/tmp` evidence after a requested revision.
+Verdict: `structurally approved` or `revisions requested`. PLAN revises and refreshes `/tmp` evidence after a requested revision. ADVISOR-light follows the same two-round maximum as scripted review: Round 2 occurs only after `revisions requested` and is final. After Round 2 without `structurally approved`, PLAN sends a blocked notice.
 
 ## `scripted-pattern`
 
@@ -154,7 +150,7 @@ Verdict: `code approved` or `revisions requested`.
 If ADVISOR finds a validation-sufficiency gap:
 
 - `additions-only`: PLAN may add stronger checks and record them;
-- `requires-weakening`: PLAN sends a decision request before changing a committed criterion.
+- `requires-weakening`: PLAN uses the run's remaining decision request before changing a committed criterion; if the single user-decision reply is already spent, PLAN blocks instead.
 
 After Round 2 without `code approved`, PLAN sends a blocked notice with bounded choices. There is no Round 3.
 

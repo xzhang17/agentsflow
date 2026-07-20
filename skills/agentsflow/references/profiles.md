@@ -1,8 +1,7 @@
 # Profiles and Domain Rubrics
 
-## Schema
+## Scope
 
-- **Profile schema:** `3`
 - Profiles define task obligations, protected boundaries, role overlays, and validation evidence.
 - Profiles never choose an execution mode. PLAN selects modes from `references/execution-modes.md` after inspection.
 
@@ -251,7 +250,7 @@ The target includes web pages, browser interfaces, components, styles, or user i
 
 ### Authoring rubric — orchestrator
 - Capture target pages/components, user-visible outcomes, supplied references, required states, and viewport constraints.
-- Require DESIGNER before implementation and after rendering.
+- Require DESIGNER before implementation and for post-implementation visual review.
 <!-- AGENTS_PROFILE_AUTHORING_END: artifact-web-ui -->
 
 ### Runtime rubric — PLAN
@@ -304,8 +303,39 @@ The target includes LaTeX sources, bibliographies, figures, classes, or document
 ### Validation obligations
 - Compile once to convergence as the project requires and check task-relevant undefined-reference, warning, and overfull diagnostics. When the requested result is visual, require the role designated by the selected evidence profile to inspect directly affected pages or a small representative sample.
 
-### Cross-profile interfaces
-- Eligible mutating work follows `references/latex-cleanup.md` only after all validation passes.
+### Post-success cleanup
+This is the canonical LaTeX intermediate cleanup. It is post-success housekeeping, not validation. No other profile inherits automatic cleanup.
+
+**Eligibility.** Run only when all hold:
+1. `artifact-document-latex` applies;
+2. neither `intent-inquiry` nor `intent-diagnosis` is selected;
+3. SMOL modified LaTeX project/build inputs, or the workflow explicitly requests cleanup;
+4. every committed acceptance check passed, including the final project-native compile, required diagnostics, and any required rendered-page inspection.
+
+A successful compile alone is insufficient. If any committed check fails or is blocked, preserve intermediates and skip cleanup. An explicit cleanup-only task may run without source edits or a fresh compile only when its finalized checklist authorizes that outcome; it remains mutating work.
+
+**Resolve the build boundary.** Before deleting, PLAN records:
+- project root and exact root document(s);
+- every directory that holds a compiled source, including subdirectories of `\input`/`\include`d chapters;
+- actual output and auxiliary directories (`-output-directory`, `-aux-directory`, or latexmk `$out_dir`/`$aux_dir`);
+- project-native clean target or latexmk configuration;
+- protected artifacts: all sources (`.tex`, `.bib`, `.cls`, `.sty`, `.def`, `.ltx`), figures and assets (including figure `.pdf`/`.eps`/image files), configuration, and every final deliverable, plus any artifact the prompt or workflow designates as a deliverable (for example a submission `.bbl`).
+
+Do not assume the current directory is the build directory. If the boundary cannot be established safely, skip cleanup and report a process warning.
+
+**Procedure.**
+1. Prefer the project-native clean target only when inspection proves it removes generated intermediates and preserves every protected artifact.
+2. Otherwise, when latexmk is available, run `latexmk -c <root-document>` from the resolved root with the same output/auxiliary-directory options as the validated build. Run once per validated root. Never run `latexmk -C` (it deletes the final PDF).
+3. `latexmk -c` is not sufficient on its own: it keeps `.bbl` and does not track per-chapter `.aux` from `\input`/`\include`d subfiles or biber/glossary/index/beamer intermediates. After it runs, sweep the resolved boundary — root plus every recorded compiled-source and output/aux directory, recursively into those directories only — and remove files whose extension is a known LaTeX intermediate: `.aux .bbl .bcf .blg .brf .fdb_latexmk .fls .glg .glo .gls .glsdefs .idx .ilg .ind .ist .lof .log .lot .nav .out .run.xml .snm .synctex.gz .toc .vrb .xdy` and other unambiguously generated LaTeX intermediates.
+4. Never remove `.pdf`, source files, figures, assets, configuration, or any protected/deliverable artifact, and never touch paths outside the resolved boundary. Because `.pdf` is never removed, figure PDFs and the final PDF are both safe.
+5. Build each removal from files that currently exist; never pass absent paths. After removal, perform one existence check over the attempted paths.
+
+**Verify and report.** PLAN confirms root source documents and every final deliverable still exist, does not recompile or reinspect solely because cleanup ran, and reports the mechanism, boundary, and one outcome:
+- **cleaned** — no known intermediate remains in the boundary;
+- **partial warning** — protected artifacts intact but a named residual or step remains;
+- **skipped warning** — an eligibility or boundary condition was not established.
+
+Never report cleaned after a partial or failed cleanup. A cleanup failure is non-fatal when the requested LaTeX result and every committed check already succeeded; when cleanup is itself the requested deliverable, incomplete cleanup fails the task. Unexpected deletion, protected-artifact change, or suspected corruption follows `references/safety.md` and blocks the run.
 
 ## `artifact-document-generic`
 

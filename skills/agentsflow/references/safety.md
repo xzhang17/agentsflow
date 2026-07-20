@@ -72,11 +72,11 @@ This section is the single authority for blocked-run triggers. `references/grill
 
 Use `PLAN BLOCKED [B1]` when continuation is genuinely impossible, including:
 
-- incompatible or malformed frozen workflow/schema contract;
+- malformed or unreadable workflow contract;
 - missing required profile or mode authority;
 - irreversible/external action without exact authorization;
 - suspected corruption;
-- mandatory scripted review ending without `code approved`;
+- a required ADVISOR review ending without approval within its two-round limit;
 - a validation failure or regression that cannot be resolved within the finalized authorized scope;
 - required evidence or tooling is unavailable and no honest substitute proves the acceptance criterion, including an uncorrectable required `VISION_FAIL`;
 - a material ambiguity has no safe conservative default after the user-decision opportunity is exhausted.
@@ -105,7 +105,7 @@ Exclude private reasoning, secret values, source dumps, and unnecessary raw tool
 
 ## LaTeX Cleanup
 
-Automatic cleanup exists only for eligible `artifact-document-latex` work and follows `references/latex-cleanup.md`. It is post-success housekeeping, not validation. No other profile inherits automatic cleanup.
+Automatic cleanup exists only for eligible `artifact-document-latex` work and follows the **Post-success cleanup** procedure in the `artifact-document-latex` profile in `references/profiles.md`. It is post-success housekeeping, not validation. No other profile inherits automatic cleanup.
 
 Unexpected deletion, protected-artifact change, or suspected corruption blocks the run. A bounded partial cleanup that preserves protected artifacts is a process warning unless cleanup itself was the requested deliverable.
 

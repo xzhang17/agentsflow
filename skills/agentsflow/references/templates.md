@@ -1,6 +1,6 @@
 # Templates
 
-This file is the single authoritative source for Agents Flow message and report shapes. Procedures live in `SKILL.md`, `profiles.md`, `execution-modes.md`, and `safety.md`.
+This file is the single authoritative source for Agents Flow message and report shapes. Procedures live in `SKILL.md`, `profiles.md`, `execution-modes.md`, `grilling-intake.md`, and `safety.md`.
 
 ## Live Messages
 
@@ -72,9 +72,12 @@ Scope:
 - protected: ...
 
 Decision record:
-- inspection basis: ...
+- inspection basis: <files/sites/evidence>
 - user packet: I1 sent | D1 sent | skipped
-- user decisions/defaults: ...
+- questions asked: <0-3>
+- user decisions: <Q<n>/D1 = answer>
+- conservative defaults: <decision = default>
+- narrow confirmation lookup: none | <exact site>
 - blocked notice: none | B1
 
 Implementation checklist:
@@ -122,6 +125,7 @@ ADVISOR is used only for risk-triggered `batch-anchored` items and every `script
 ```text
 batch-anchored structural review:
 - item ref: <n>
+- review round: <1|2> of 2
 - tuple count: <N>
 - tuples well-formed and locations valid: yes/no
 - duplicate (file, line, old) keys absent: yes/no

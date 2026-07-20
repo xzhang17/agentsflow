@@ -40,7 +40,7 @@ If more than three decisions exist, ask the three highest-impact ones only when 
 
 Use the canonical `PLAN QUESTIONNAIRE [I1]` shape in `references/templates.md`; omit unused questions.
 
-After the reply, PLAN may perform only a narrow confirmation lookup at an already-inspected site, then freezes the checklist. A reply that materially expands scope or invalidates inspection uses the decision path only if no questionnaire was sent; otherwise PLAN blocks and explains why a fresh run is needed.
+After the reply, PLAN may perform only a narrow confirmation lookup at an already-inspected site, then freezes the checklist. A reply that materially expands scope or invalidates inspection cannot open a second packet — the questionnaire consumed the run's single user-decision reply — so PLAN blocks and explains why a fresh run is needed.
 
 ## Late Decision Request
 
@@ -65,17 +65,6 @@ A blocked notice ends the run. PLAN authors a blocked final report and condition
 
 ## Internal Decision Record
 
-PLAN keeps:
-
-```text
-Decision record:
-- inspection basis: <files/sites/evidence>
-- user packet: <I1 sent | D1 sent | skipped>
-- questions asked: <0-3>
-- user decisions: <Q<n>/D1 = answer>
-- conservative defaults: <decision = default>
-- narrow confirmation lookup: <none | exact site>
-- blocked notice: <none | B1>
-```
+PLAN keeps the canonical `Decision record` block defined in the PLAN Internal Packet in `references/templates.md`: inspection basis, user packet, questions asked, user decisions, conservative defaults, any narrow confirmation lookup, and any blocked notice.
 
 This record is analytical material. The orchestrator does not inspect or summarize it.

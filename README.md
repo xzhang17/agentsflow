@@ -4,7 +4,7 @@ A multi-agent workflow for **omp** (Oh My Pi), an AI coding assistant that runs 
 
 Agents Flow splits nontrivial project work across a small team of specialized agents with strictly separated powers: one agent plans and validates, one independently reviews risky changes, and exactly one is allowed to edit your files. The agent that writes a change is never the one that approved it, and every change is tied to an acceptance check that is frozen *before* implementation starts.
 
-**Version** 3.0.5 · **License** MIT · **Requires** omp with sub-agent spawning (depth ≥ 2)
+**Version** 3.1.0 · **License** MIT · **Requires** omp with sub-agent spawning (depth ≥ 2)
 
 Its lightweight sibling, [Quick Flow](https://github.com/xzhang17/quickflow), handles small bounded jobs in a single session with no delegation. See [Quick Flow vs Agents Flow](#quick-flow-vs-agents-flow).
 
@@ -119,7 +119,7 @@ By default a run is **durable**: the orchestrator writes two files under `.agent
 .agentsflow/AGENTS_LAUNCHER.md    # universal launcher pointing at it
 ```
 
-The workflow records the goal, named inputs and boundaries, selected profiles, atomic requirements, facts PLAN must discover by inspection, validation expectations, and the stopping condition — plus exact version stamps (`Agents Flow skill: 3.0.5`, `Workflow schema: 3`, `Profile schema: 3`, `Execution-mode schema: 1`). Once written, a workflow is an immutable snapshot: new runs get new collision-free filenames (`AGENTS_WORKFLOW_<slug>.md`), and old snapshots are never rewritten in place, even after a skill upgrade.
+The workflow records the goal, named inputs and boundaries, selected profiles, atomic requirements, facts PLAN must discover by inspection, validation expectations, and the stopping condition — plus a single `Agents Flow skill` version stamp for provenance. Each run authors a fresh workflow; a new run never overwrites a workflow you may still be running, taking a collision-free filename (`AGENTS_WORKFLOW_<slug>.md`) instead.
 
 If you say "don't create workflow files," the same contract fields are passed directly in PLAN's spawn prompt instead (**direct local** branch); the runtime behavior after launch is identical.
 
@@ -175,7 +175,7 @@ Validation is proportional: the narrowest project-native evidence that proves ea
 
 A committed check that cannot run is reported as failed or blocked — never silently dropped. Dry-run evidence from `/tmp` copies supplements, but never replaces, validation of the real integrated project.
 
-After full success, the only automatic housekeeping is a bounded LaTeX intermediate cleanup (resolved build boundary, generated-file inventory, `latexmk -c`-based, final PDFs and `.bbl` always preserved) per [`references/latex-cleanup.md`](skills/agentsflow/references/latex-cleanup.md). No other profile inherits automatic cleanup.
+After full success, the only automatic housekeeping is a bounded LaTeX intermediate cleanup (resolved build boundary, `latexmk -c` followed by a known-extension sweep across the boundary that also removes `.bbl` and per-chapter `.aux`, with final PDFs, sources, and figures always preserved), defined in the `artifact-document-latex` profile in [`references/profiles.md`](skills/agentsflow/references/profiles.md). No other profile inherits automatic cleanup.
 
 ## Safety guarantees
 
@@ -324,13 +324,11 @@ agentsflow/
 │   │   └── AGENTS_LAUNCHER.template.md        # universal launcher
 │   └── references/             # loaded per phase, not all at once
 │       ├── workflow-authoring.md   # authoring rules + pre-launch gate
-│       ├── profiles.md             # 19 task profiles + composition contract
+│       ├── profiles.md             # 19 task profiles + composition + LaTeX cleanup
 │       ├── execution-modes.md      # the four modes, review routing, SMOL handoff
 │       ├── grilling-intake.md      # questionnaire / decision / blocked protocol
 │       ├── safety.md               # scope, secrets, destructive actions, recovery
-│       ├── templates.md            # status, packet, and report formats
-│       ├── latex-cleanup.md        # canonical LaTeX cleanup procedure
-│       └── modes.md                # legacy v2 stub, kept so old snapshots fail clearly
+│       └── templates.md            # status, packet, and report formats
 └── agents/                     # the six agent definitions
     ├── plan.md
     ├── reviewer.md
@@ -351,11 +349,10 @@ Both halves are required: the skill spawns the agents by exact name, so it canno
 | An agent won't start / model unavailable | You lack that provider. Override or add fallbacks — see [Choosing the AI models](#choosing-the-ai-models). |
 | PLAN can't spawn specialists | Recursion depth limited. Ensure `task.maxRecursionDepth` ≥ 2. |
 | SMOL's edits don't appear in your files | omp is editing an isolated copy. Set `task.isolation.mode: none`. |
-| A run reports "workflow must be regenerated" | The saved workflow's schema predates the installed skill. Old snapshots are never migrated in place; invoke a fresh run. |
 
 ## Versioning
 
-The skill carries a semantic version (currently **3.0.5**) plus independent schema numbers for the workflow (`3`), profile (`3`), and execution-mode (`1`) file formats. Schema numbers change only when the file formats change, so generated workflows remain interpretable as versioned snapshots. Full history: [`skills/agentsflow/CHANGELOG.md`](skills/agentsflow/CHANGELOG.md).
+The skill carries a single semantic version (currently **3.1.0**), stamped into each generated workflow for provenance. Workflows are authored fresh every run rather than migrated across versions. Full history: [`skills/agentsflow/CHANGELOG.md`](skills/agentsflow/CHANGELOG.md).
 
 ## License
 

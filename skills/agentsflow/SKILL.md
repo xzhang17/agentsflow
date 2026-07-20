@@ -1,10 +1,10 @@
 ---
 name: agentsflow
-version: 3.0.5
+version: 3.1.0
 description: Generate and run safe Agents Flow workflows. The orchestrator structures a prompt and launches PLAN; PLAN inspects once, obtains required pre-freeze specialist input, resolves at most one user-decision packet, freezes a mode-per-item checklist, routes review and SMOL, obtains required post-implementation specialist review, validates the integrated project, performs authorized housekeeping, and authors the final report.
 ---
 
-<!-- Version: 3.0.5 - full history: see CHANGELOG.md in this skill directory. -->
+<!-- Version: 3.1.0 - full history: see CHANGELOG.md in this skill directory. -->
 
 # Skill: Agents Flow
 
@@ -38,27 +38,24 @@ Default for an activated project-backed request unless the user explicitly asks 
 3. spawn exact `agent:"plan"` with the workflow path;
 4. become passive relay.
 
-Follow `references/workflow-authoring.md`. Do not overwrite old generated snapshots.
+Follow `references/workflow-authoring.md`. Do not overwrite a generated workflow the user may still be running; author under a collision-free name instead.
 
 ### Direct local branch
 
 When the user explicitly requests immediate local work or says not to generate workflow files:
 
 1. structure the same binding task fields in the PLAN spawn prompt;
-2. include current version and schema declarations;
+2. include the current skill version;
 3. spawn exact `agent:"plan"`;
 4. become passive relay.
 
 The runtime topology after PLAN starts is identical in both branches.
 
-## Current Contract Versions
+## Skill Version
 
-- **Agents Flow skill:** `3.0.5`
-- **Workflow schema:** `3`
-- **Profile schema:** `3`
-- **Execution-mode schema:** `1`
+- **Agents Flow skill:** `3.1.0`
 
-New workflows use `references/profiles.md` and `references/execution-modes.md`. Legacy frozen workflows that name `references/modes.md` are compatibility snapshots; regenerate them for the current contract rather than editing them in place.
+Every new workflow stamps this version for provenance. Workflows are authored fresh from `references/profiles.md` and `references/execution-modes.md` each run.
 
 ## Role Separation
 
@@ -183,7 +180,7 @@ Every scripted item requires PLAN's whole-copy dry-run and independent ADVISOR r
 ## Specialist Routing
 
 - Every web/UI task uses DESIGNER before checklist freeze and after SMOL. PLAN also exercises the real interface in its browser.
-- When `evidence-visual-browser-pdf` requires supplied or rendered PDF/page/image fidelity inspection, PLAN must choose uniquely identified local reference/target inputs, explicit comparison pairs or standalone sites, the exact page list, bounded criteria, suitable default DPI, and whether follow-up crops are allowed, then pass that complete evidence contract to VISION. VISION renders and visually inspects its own temporary page images with `render_pdf_pages`. When the contract allows it and a full page is insufficient, VISION may choose bounded normalized crop coordinates within an assigned page and use `render_pdf_region`; it must ask PLAN for any new page or evidence set. PLAN does not render or inspect the images itself, and VISION must not expand the assigned inputs, pages, pairs, or criteria; otherwise VISION remains optional.
+- When `evidence-visual-browser-pdf` requires supplied or rendered PDF/page/image fidelity inspection, PLAN must choose uniquely identified local reference/target inputs, explicit comparison pairs or standalone sites, the exact page list, bounded criteria, suitable default DPI, and whether follow-up crops are allowed, then pass that complete evidence contract to VISION. VISION renders and visually inspects its own temporary page images with `render_pdf_pages`. When the contract allows it and a full page is insufficient, VISION may choose bounded normalized crop coordinates within an assigned page and use `render_pdf_region`; it must ask PLAN for any new page or evidence set. PLAN does not render or inspect the images itself, and VISION must not expand the assigned inputs, pages, pairs, or criteria. When no such fidelity inspection is required, VISION remains optional.
 - The semantic inspector receives only a narrow suspect set whose correctness cannot be decided structurally.
 - ADVISOR is not a routine plan critic or final-diff reviewer.
 - SMOL receives only finalized checklist items and required review records.
@@ -195,7 +192,7 @@ PLAN validates the integrated real project after SMOL. Validation is proportiona
 - run the narrowest project-native check that proves each acceptance criterion;
 - reproduce a reported defect when practical, then confirm it is gone;
 - exercise actual UI behavior in the browser for UI work;
-- compile/render task-relevant LaTeX and inspect diagnostics; when PDF/image fidelity is a committed criterion, require VISION's image-based report for every assigned page rather than substituting PLAN inspection or text extraction;
+- compile/render task-relevant LaTeX and inspect diagnostics; when PDF/image fidelity is a committed criterion, require VISION's image-based report for every assigned comparison pair or standalone site rather than substituting PLAN inspection or text extraction;
 - add tests only for a new observable contract without existing coverage or when the prompt requests them;
 - avoid broad formatters, full suites, exhaustive visual comparisons, and unrelated warning sweeps unless the changed surface or prompt requires them.
 
@@ -205,7 +202,7 @@ If a required VISION review returns `VISION_FAIL`, PLAN may correct and retry on
 
 ## LaTeX Post-Success Cleanup
 
-Eligible cleanup follows `references/latex-cleanup.md`, the single normative procedure. It runs only after every committed validation check passes and only inside the resolved build boundary. No other profile inherits automatic cleanup.
+Eligible cleanup follows the **Post-success cleanup** procedure in the `artifact-document-latex` profile in `references/profiles.md`. It runs only after every committed validation check passes and only inside the resolved build boundary. No other profile inherits automatic cleanup.
 
 ## Safety and Recovery
 
@@ -242,7 +239,7 @@ Required phases:
 8. housekeeping, only when applicable;
 9. reporting.
 
-Before an operation expected to exceed 90 seconds, PLAN sends one status naming the operation and expected next event. The orchestrator may emit neutral job-liveness notices; it never infers analytical progress from liveness.
+A late decision request, when used, adds one waiting status at the phase where it occurs. Before an operation expected to exceed 90 seconds, PLAN sends one status naming the operation and expected next event. The orchestrator may emit neutral job-liveness notices; it never infers analytical progress from liveness.
 
 ## Completion and Reporting
 
@@ -264,9 +261,8 @@ Load only what the active phase needs:
 - `assets/AGENTS_WORKFLOW_CORE.template.md` — compact workflow template.
 - `assets/AGENTS_LAUNCHER.template.md` — universal launcher.
 - `references/workflow-authoring.md` — pre-launch authoring and write gate.
-- `references/profiles.md` — profile index, composition, runtime, and validation obligations.
+- `references/profiles.md` — profile index, composition, runtime, validation obligations, and LaTeX post-success cleanup.
 - `references/execution-modes.md` — implementation modes, artifacts, review, and SMOL handoff.
 - `references/grilling-intake.md` — questionnaire, decision, and blocked protocol.
 - `references/safety.md` — scope, secrets, destructive actions, recovery, and validation boundaries.
 - `references/templates.md` — statuses, packets, executor report, and final report.
-- `references/latex-cleanup.md` — canonical LaTeX cleanup.
