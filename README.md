@@ -30,6 +30,7 @@ Its lightweight sibling, [Quick Flow](https://github.com/xzhang17/quickflow), ha
 - [Repository layout](#repository-layout)
 - [Troubleshooting](#troubleshooting)
 - [Versioning](#versioning)
+- [Contributors](#contributors)
 - [License](#license)
 
 ## Why Agents Flow
@@ -73,7 +74,7 @@ Each role is a separate omp agent, defined by its own file in [`agents/`](agents
 
 ```mermaid
 flowchart TD
-    U[You invoke agentsflow] --> O[Orchestrator structures the request<br/>and writes the workflow contract]
+    U[Invoke agentsflow] --> O[Orchestrator structures the request<br/>and writes the workflow contract]
     O --> P[PLAN: one proportional inspection<br/>of the project]
     P --> S{Pre-freeze specialist needed?}
     S -->|web/UI| D[DESIGNER specification]
@@ -361,6 +362,11 @@ Both halves are required: the skill spawns the agents by exact name, so it canno
 ## Versioning
 
 The skill carries a single semantic version (currently **3.2.0**), stamped into each generated workflow for provenance. Workflows are authored fresh every run rather than migrated across versions. Each release is audited against the scenario fixtures in [`skills/agentsflow/evals/scenarios.md`](skills/agentsflow/evals/scenarios.md) — hand-checkable cases covering the contract's edge behavior (stale batch tuples, exhausted reviews, missing agents, blocked VISION evidence, and more). Full history: [`skills/agentsflow/CHANGELOG.md`](skills/agentsflow/CHANGELOG.md).
+
+## Contributors
+
+- [xzhang17](https://github.com/xzhang17) — author and maintainer
+- Claude (Anthropic) — development assistant
 
 ## License
 
