@@ -1,10 +1,12 @@
+English | [简体中文](README.zh-CN.md)
+
 # Agents Flow
 
 A multi-agent workflow for **omp** (Oh My Pi), an AI coding assistant that runs in your terminal.
 
 Agents Flow splits nontrivial project work across a small team of specialized agents with strictly separated powers: one agent plans and validates, one independently reviews risky changes, and exactly one is allowed to edit your files. The agent that writes a change is never the one that approved it, and every change is tied to an acceptance check that is frozen *before* implementation starts.
 
-**Version** 3.1.0 · **License** MIT · **Requires** omp with sub-agent spawning (depth ≥ 2)
+**Version** 3.2.0 · **License** MIT · **Requires** omp with sub-agent spawning (depth ≥ 2)
 
 Its lightweight sibling, [Quick Flow](https://github.com/xzhang17/quickflow), handles small bounded jobs in a single session with no delegation. See [Quick Flow vs Agents Flow](#quick-flow-vs-agents-flow).
 
@@ -55,7 +57,7 @@ The two are deliberately incompatible: a Quick Flow invocation that turns out to
 
 ## The team
 
-Each role is a separate omp agent, defined by its own file in [`agents/`](agents/). Roles are spawned by exact name — the workflow never substitutes a general-purpose agent.
+Each role is a separate omp agent, defined by its own file in [`agents/`](agents/). Roles are spawned by exact name — a required agent that is missing blocks the run with a clear notice; the workflow never substitutes a general-purpose agent.
 
 | Role | Agent file | Edits your files? | Responsibility |
 |---|---|---|---|
@@ -63,7 +65,7 @@ Each role is a separate omp agent, defined by its own file in [`agents/`](agents
 | PLAN | `plan.md` | no | Owns the run: inspects the project once, gathers specialist input, asks you at most one round of questions, freezes the checklist, routes review and implementation, validates the integrated result, and authors the final report. |
 | SMOL | `smol.md` | **yes — the only one** | Implements the finalized checklist exactly. Refuses items with stale anchors or missing review records rather than improvising. |
 | ADVISOR | `reviewer.md` | no | Independent reviewer. Every transformation script requires its explicit `code approved` verdict before touching real files; risky batch edits get a lighter structural review. |
-| DESIGNER | `designer.md` | no | Read-only web/UI specialist: produces an implementation-ready specification before UI work and a visual review after it. |
+| DESIGNER | `designer.md` | no | Read-only web/UI specialist: produces an implementation-ready specification before mutating UI work and a visual review after it. Read-only UI questions skip it. |
 | VISION | `vision.md` | no | Read-only PDF/image fidelity inspector. Renders only PLAN-assigned PDF pages into private temporary images (via restricted `render_pdf_pages` / `render_pdf_region` tools) and reports discrepancies against bounded criteria. |
 | Semantic inspector | `inspector_semantic.md` | no | Narrow escalation for correctness judgments that structural inspection (searching, parsing, diffing) cannot settle. |
 
@@ -121,7 +123,9 @@ By default a run is **durable**: the orchestrator writes two files under `.agent
 
 The workflow records the goal, named inputs and boundaries, selected profiles, atomic requirements, facts PLAN must discover by inspection, validation expectations, and the stopping condition — plus a single `Agents Flow skill` version stamp for provenance. Each run authors a fresh workflow; a new run never overwrites a workflow you may still be running, taking a collision-free filename (`AGENTS_WORKFLOW_<slug>.md`) instead.
 
-If you say "don't create workflow files," the same contract fields are passed directly in PLAN's spawn prompt instead (**direct local** branch); the runtime behavior after launch is identical.
+Read-only runs (inquiry or diagnosis) and tasks without a writable project root keep your repository clean: their workflow pair is written under an external records root instead — the host's session store when it has one (omp's `local://agentsflow`), else `~/.agentsflow`, else the OS temp directory. Required recovery packets use the same root.
+
+If you say "don't create workflow files," the same contract fields are passed directly in PLAN's spawn prompt instead (**direct local** branch); the runtime behavior after launch is identical. You can also point a later request at an existing generated launcher: the orchestrator verifies the workflow file exists and stamps the current skill version, then launches PLAN on it without re-authoring — a stale or missing pair is reported with an offer of fresh authoring, never silently migrated.
 
 A deliberate boundary: the orchestrator authors the contract *without inspecting your project* — no compiling, diagnosing, or site-hunting before PLAN exists. Anything that requires looking at the project is listed as a fact for PLAN to discover. This keeps the contract honest and the inspection in the hands of the agent that owns the run.
 
@@ -149,7 +153,8 @@ After inspection, PLAN assigns exactly one mode to every checklist item. The mod
 
 Guard rails worth knowing:
 
-- The batch applier is **exact-once-or-refuse**: if any tuple's `old` text doesn't occur exactly once on its named line, nothing is written at all — no partial batches.
+- The batch applier is **exact-once-or-refuse**: if any tuple's `old` text doesn't occur exactly once on its named line, nothing is written at all — no partial batches. Within each file, tuples are applied in descending line order, so a replacement that changes the line count can never shift the locations of tuples still pending.
+- Tuples bind to the source state they were captured from. If another checklist item touches a tuple's file first, the batch is re-captured with fresh evidence and, when required, a fresh review; a second stale refusal of the same item blocks the run instead of looping.
 - The batch risk trigger (public APIs, schemas, cross-file references, deletions, meaningful whitespace, and similar) is what escalates a batch from PLAN's fast path to ADVISOR-light.
 - Every scripted item is rehearsed on a complete copy of the project in `/tmp`, where PLAN must prove every catalogued target changed, nothing else changed, edge cases held, the copy still builds, and rerunning is safe — before ADVISOR even sees it.
 - A script that fails review cannot be smuggled through as a "batch" instead; downgrading a failed scripted review is prohibited.
@@ -169,7 +174,7 @@ Validation is proportional: the narrowest project-native evidence that proves ea
 
 - reported defects are reproduced when practical, then shown gone;
 - UI changes are exercised in a real browser (by PLAN), plus DESIGNER's visual review;
-- LaTeX is compiled with the project's native pipeline and task-relevant diagnostics are checked; when PDF/page fidelity is a committed criterion, VISION must inspect image evidence for every assigned page — PLAN may not substitute its own inspection or text extraction;
+- LaTeX is compiled with the project's native pipeline and task-relevant diagnostics are checked; when PDF/page fidelity is a committed criterion, VISION must inspect image evidence for every assigned comparison pair or page — PLAN may not substitute its own inspection or text extraction;
 - tests are added only for a new observable contract without existing coverage, or when you ask;
 - broad formatters, full test suites, and unrelated warning sweeps are avoided unless the changed surface requires them.
 
@@ -314,6 +319,7 @@ retry:
 ```
 agentsflow/
 ├── README.md
+├── README.zh-CN.md
 ├── LICENSE
 ├── install.sh                  # copies skill + agents into omp
 ├── skills/agentsflow/
@@ -322,6 +328,8 @@ agentsflow/
 │   ├── assets/
 │   │   ├── AGENTS_WORKFLOW_CORE.template.md   # workflow template
 │   │   └── AGENTS_LAUNCHER.template.md        # universal launcher
+│   ├── evals/
+│   │   └── scenarios.md        # release-audit scenarios (never loaded at runtime)
 │   └── references/             # loaded per phase, not all at once
 │       ├── workflow-authoring.md   # authoring rules + pre-launch gate
 │       ├── profiles.md             # 19 task profiles + composition + LaTeX cleanup
@@ -352,7 +360,7 @@ Both halves are required: the skill spawns the agents by exact name, so it canno
 
 ## Versioning
 
-The skill carries a single semantic version (currently **3.1.0**), stamped into each generated workflow for provenance. Workflows are authored fresh every run rather than migrated across versions. Full history: [`skills/agentsflow/CHANGELOG.md`](skills/agentsflow/CHANGELOG.md).
+The skill carries a single semantic version (currently **3.2.0**), stamped into each generated workflow for provenance. Workflows are authored fresh every run rather than migrated across versions. Each release is audited against the scenario fixtures in [`skills/agentsflow/evals/scenarios.md`](skills/agentsflow/evals/scenarios.md) — hand-checkable cases covering the contract's edge behavior (stale batch tuples, exhausted reviews, missing agents, blocked VISION evidence, and more). Full history: [`skills/agentsflow/CHANGELOG.md`](skills/agentsflow/CHANGELOG.md).
 
 ## License
 

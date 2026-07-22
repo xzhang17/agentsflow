@@ -254,9 +254,10 @@ The target includes web pages, browser interfaces, components, styles, or user i
 <!-- AGENTS_PROFILE_AUTHORING_END: artifact-web-ui -->
 
 ### Runtime rubric — PLAN
-- Spawn DESIGNER before checklist freeze for an implementation-ready specification.
+- For mutating work, spawn DESIGNER before checklist freeze for an implementation-ready specification.
 - Inspect the real interface in a browser when runnable.
 - After SMOL, exercise the UI in PLAN's browser and spawn DESIGNER for visual review.
+- Read-only inquiry or diagnosis spawns neither DESIGNER nor SMOL.
 - Preserve the existing design system and accessibility conventions.
 
 ### Validation obligations

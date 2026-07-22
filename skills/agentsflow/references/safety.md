@@ -74,6 +74,7 @@ Use `PLAN BLOCKED [B1]` when continuation is genuinely impossible, including:
 
 - malformed or unreadable workflow contract;
 - missing required profile or mode authority;
+- a required named role agent that is missing or cannot be spawned by its exact name;
 - irreversible/external action without exact authorization;
 - suspected corruption;
 - a required ADVISOR review ending without approval within its two-round limit;
@@ -92,6 +93,8 @@ Persist a project-external recovery packet only when:
 3. the run ends failed or blocked after modifying user files.
 
 Otherwise report concise evidence inline and create no packet.
+
+Write a required packet to `<external-records-root>/<workflow-stem>-<UTC-YYYYMMDDTHHMMSSZ>-recovery.md`, resolving the external records root per `references/workflow-authoring.md` and appending a numeric suffix on collision. If persistence fails, report a `[PROCESS WARNING]` and the required recovery evidence inline.
 
 When required, include only:
 

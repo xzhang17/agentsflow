@@ -53,11 +53,11 @@ Use only when every change is an exact tuple:
 
 If exact source text cannot be recovered, use `anchored`. Judgment-dependent sites never belong in a batch.
 
-Tuples bind to the source state PLAN captured them from. When another checklist item edits a tuple's file, PLAN sequences the batch item ahead of it or re-captures the tuples — refreshing `/tmp` evidence and any required review — before SMOL runs the applier. An applier refusal on a stale line returns the item to PLAN.
+Tuples bind to the source state PLAN captured them from. When another checklist item edits a tuple's file, PLAN sequences the batch item ahead of it or re-captures the tuples — refreshing `/tmp` evidence and any required review — before SMOL runs the applier. An applier refusal on a stale line returns the item to PLAN. A re-captured tuple set is a new review artifact: any required ADVISOR-light review restarts with a fresh two-round maximum. A second stale-line refusal of the same item becomes a blocked notice rather than another re-capture cycle.
 
 ### Exact-once-or-refuse applier
 
-The applier must validate the entire tuple set before writing. It applies a tuple only when the exact `old` substring occurs exactly once on the named line. Any mismatch, duplicate key, out-of-scope path, or non-unique occurrence refuses the whole write with no partial edits. A blind replacement is prohibited.
+The applier must validate the entire tuple set before writing. It applies a tuple only when the exact `old` substring occurs exactly once on the named line. Any mismatch, duplicate key, out-of-scope path, or non-unique occurrence refuses the whole write with no partial edits. A blind replacement is prohibited. Within each file, the applier applies tuples in descending line order, so a replacement that changes the line count can never shift the line numbers of tuples not yet applied.
 
 ### PLAN dry-run
 

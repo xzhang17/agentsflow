@@ -1,10 +1,10 @@
 ---
 name: agentsflow
-version: 3.1.0
+version: 3.2.0
 description: Generate and run safe Agents Flow workflows. The orchestrator structures a prompt and launches PLAN; PLAN inspects once, obtains required pre-freeze specialist input, resolves at most one user-decision packet, freezes a mode-per-item checklist, routes review and SMOL, obtains required post-implementation specialist review, validates the integrated project, performs authorized housekeeping, and authors the final report.
 ---
 
-<!-- Version: 3.1.0 - full history: see CHANGELOG.md in this skill directory. -->
+<!-- Version: 3.2.0 - full history: see CHANGELOG.md in this skill directory. -->
 
 # Skill: Agents Flow
 
@@ -33,7 +33,7 @@ A simple question about Agents Flow does not activate a run unless the user asks
 
 Default for an activated project-backed request unless the user explicitly asks for local execution without generated files:
 
-1. author a fresh workflow and launcher under `.agentsflow/`;
+1. author a fresh workflow and launcher under `.agentsflow/` — read-only intents and tasks without a writable project root use the external records root defined in `references/workflow-authoring.md` instead;
 2. apply the pre-launch mechanical gate;
 3. spawn exact `agent:"plan"` with the workflow path;
 4. become passive relay.
@@ -51,9 +51,13 @@ When the user explicitly requests immediate local work or says not to generate w
 
 The runtime topology after PLAN starts is identical in both branches.
 
+### Launcher re-run branch
+
+When the user explicitly points a request at an existing generated launcher or workflow pair, the orchestrator does not re-author. It verifies the named workflow file exists and stamps the current skill version, then spawns exact `agent:"plan"` with that workflow path and becomes passive relay. A missing file or a different skill-version stamp is reported with an offer to author a fresh workflow instead; the orchestrator never edits or migrates an existing pair.
+
 ## Skill Version
 
-- **Agents Flow skill:** `3.1.0`
+- **Agents Flow skill:** `3.2.0`
 
 Every new workflow stamps this version for provenance. Workflows are authored fresh from `references/profiles.md` and `references/execution-modes.md` each run.
 
@@ -69,7 +73,7 @@ Every new workflow stamps this version for provenance. Workflows are authored fr
 | VISION | `vision` | Read-only PDF/page/image fidelity inspection. It may render only PLAN-assigned local PDF pages into private session-temporary PNGs with restricted tools; it never edits project files. |
 | Semantic inspector | `inspector_semantic` | Narrow read-only judgment escalation when structural inspection cannot settle correctness. |
 
-Named roles must be spawned by exact agent name. Never substitute a general-purpose agent when a dedicated role exists.
+Named roles must be spawned by exact agent name. Never substitute a general-purpose agent when a dedicated role exists. A required named agent that is missing or cannot be spawned is a blocked notice, never a substitution.
 
 ## Orchestrator Boundary
 
@@ -179,7 +183,7 @@ Every scripted item requires PLAN's whole-copy dry-run and independent ADVISOR r
 
 ## Specialist Routing
 
-- Every web/UI task uses DESIGNER before checklist freeze and after SMOL. PLAN also exercises the real interface in its browser.
+- Every mutating web/UI task uses DESIGNER before checklist freeze and after SMOL; read-only web/UI inquiry or diagnosis spawns neither DESIGNER nor SMOL. PLAN also exercises the real interface in its browser.
 - When `evidence-visual-browser-pdf` requires supplied or rendered PDF/page/image fidelity inspection, PLAN must choose uniquely identified local reference/target inputs, explicit comparison pairs or standalone sites, the exact page list, bounded criteria, suitable default DPI, and whether follow-up crops are allowed, then pass that complete evidence contract to VISION. VISION renders and visually inspects its own temporary page images with `render_pdf_pages`. When the contract allows it and a full page is insufficient, VISION may choose bounded normalized crop coordinates within an assigned page and use `render_pdf_region`; it must ask PLAN for any new page or evidence set. PLAN does not render or inspect the images itself, and VISION must not expand the assigned inputs, pages, pairs, or criteria. When no such fidelity inspection is required, VISION remains optional.
 - The semantic inspector receives only a narrow suspect set whose correctness cannot be decided structurally.
 - ADVISOR is not a routine plan critic or final-diff reviewer.

@@ -39,11 +39,28 @@ If either default exists and overwrite was not explicitly requested, choose a ma
 
 If that pair exists, append `_2`, `_3`, and so on. Never overwrite a generated workflow the user may still be running.
 
+For `intent-inquiry`, `intent-diagnosis`, or a task without a writable project root, write the pair under the external records root instead, so read-only work never dirties the project:
+
+```text
+<external-records-root>/workflows/AGENTS_WORKFLOW_<short-task-slug>-<UTC-YYYYMMDDTHHMMSSZ>.md
+<external-records-root>/workflows/AGENTS_LAUNCHER_<short-task-slug>-<UTC-YYYYMMDDTHHMMSSZ>.md
+```
+
+### External records root
+
+Resolve `<external-records-root>` once per run, mechanically and without asking the user:
+
+1. the host's addressable session store when it provides one (for example `local://agentsflow` on omp);
+2. otherwise `~/.agentsflow` in the user's home directory;
+3. otherwise `<OS-temp>/agentsflow` when the home directory is unavailable or unwritable.
+
+The same resolved root serves read-only workflow pairs and required recovery packets. Generated records are inert history: the user may delete them or add `.agentsflow/` to the project ignore file freely, and no role deletes, prunes, or migrates them.
+
 ## Current Metadata
 
 Every new workflow declares exactly:
 
-- `Agents Flow skill: 3.1.0`
+- `Agents Flow skill: 3.2.0`
 
 This single stamp records which skill version authored the workflow, for provenance only.
 

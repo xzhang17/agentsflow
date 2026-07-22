@@ -103,7 +103,7 @@ Mode artifact requirements are canonical in `references/execution-modes.md`; do 
 
 ## DESIGNER Brief
 
-Every web/UI task uses DESIGNER before checklist freeze and after SMOL.
+Every mutating web/UI task uses DESIGNER before checklist freeze and after SMOL.
 
 ```text
 DESIGNER brief:
